@@ -13,7 +13,7 @@ Este repositorio contiene la implementación del patrón **Circuit Breaker** usa
 
 1. **Clona el repositorio**:
    ```bash
-   git clone https://github.com/tu-usuario/circuit-breaker-pattern.git
+   git clone https://github.com/johnduartemoreno/circuit-breaker-pattern.git
    cd circuit-breaker-pattern
    ```
 
