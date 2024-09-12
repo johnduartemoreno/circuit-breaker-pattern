@@ -61,11 +61,12 @@ spec:
 
 ## Ejercicio práctico
 
-1. **Construir la imagen Docker de `my-service`**:
-   ```bash
-   docker build -t jduartem/my-service:latest .
-   docker push jduartem/my-service:latest
-   ```
+1. **Usar la imagen Docker de `my-service`**:
+   La imagen  está disponible en Docker Hub
+
+   ```yaml
+   image: jduartem/my-service:latest
+
 
 2. **Aplicar los despliegues en Kubernetes**:
    ```bash
