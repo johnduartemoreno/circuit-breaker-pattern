@@ -1,74 +1,74 @@
 
-# Estructura del Proyecto: Circuit Breaker con Spring Boot
+# Estructura del Proyecto: Circuit Breaker con Istio
 
-## 1. Introducción a la Estructura de un Proyecto Spring Boot
+## 1. Introducción a la Estructura del Proyecto
 
-Este documento describe la estructura del proyecto de ejemplo para el patrón **Circuit Breaker**, que utiliza **Spring Boot** y **Hystrix**. La estructura sigue las mejores prácticas de organización para aplicaciones Java basadas en Spring Boot.
+Este documento describe la estructura del proyecto de ejemplo para el patrón **Circuit Breaker**, que utiliza **Istio** en un entorno de microservicios desplegado en **Kubernetes**.
 
-### a) **`src/main/java/com/example/circuitbreaker`**
+### a) **`services/`**
 
-Este directorio contiene todo el código fuente de la aplicación. Siguiendo la convención de **paquetes Java**, el nombre del paquete refleja el dominio inverso, lo cual es una práctica estándar en el desarrollo de aplicaciones empresariales en Java.
-
-#### Archivos importantes:
-
-- **`MyService.java`**:
-  Esta clase implementa la lógica del microservicio. Está anotada con `@RestController`, lo que significa que expone un API HTTP. Además, utiliza la anotación `@HystrixCommand` para aplicar el patrón **Circuit Breaker**, con un método de fallback en caso de fallas continuas.
-
-- **`CircuitBreakerApplication.java`**:
-  Esta es la clase principal que inicializa y ejecuta la aplicación Spring Boot. La anotación `@SpringBootApplication` habilita varias características automáticas de Spring, incluyendo la configuración y el escaneo de componentes.
-
-### b) **`src/resources`**
-
-El directorio **`resources`** contiene archivos de configuración y otros recursos que la aplicación necesita en tiempo de ejecución.
+Este directorio contiene los servicios desarrollados para el proyecto. Cada microservicio está organizado en subdirectorios separados bajo la carpeta `services/`, lo que permite una estructura modular y escalable.
 
 #### Archivos importantes:
 
-- **`application.yml`**:
-  Este archivo YAML contiene la configuración de **Hystrix**, que define cómo debe comportarse el **Circuit Breaker**. Aquí se especifican el umbral de fallos, el tiempo de espera antes de abrir el circuito, y otras propiedades.
+- **`my-service/`**:
+  Esta carpeta contiene el código fuente del microservicio `my-service`. Está desarrollado con **Node.js** y utiliza Express para exponer una API HTTP.
+
+### b) **`k8s/`**
+
+El directorio **`k8s/`** contiene los archivos de configuración de Kubernetes que definen el despliegue y la exposición de los microservicios.
+
+#### Archivos importantes:
+
+- **`deployment.yaml`**:
+  Define el despliegue de `my-service` en el clúster de Kubernetes, especificando las réplicas y la configuración de los contenedores.
+  
+- **`istio-destination-rule.yaml`**:
+  Implementa la regla de destino de Istio para habilitar el patrón **Circuit Breaker** a nivel de red, protegiendo el servicio de fallos continuos.
 
 ```yaml
-hystrix:
-  command:
-    default:
-      execution:
-        isolation:
-          thread:
-            timeoutInMilliseconds: 3000
-      circuitBreaker:
-        requestVolumeThreshold: 5
-        sleepWindowInMilliseconds: 5000
-        errorThresholdPercentage: 50
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: my-service-circuit-breaker
+spec:
+  host: my-service
+  trafficPolicy:
+    outlierDetection:
+      consecutiveErrors: 2
+      interval: 5s
+      baseEjectionTime: 15m
+      maxEjectionPercent: 50
 ```
 
 ### c) **Estructura del Código**
 
-1. **CircuitBreakerApplication.java**:
-   - Esta clase arranca la aplicación Spring Boot y crea un servidor web embebido que ejecuta la aplicación.
+1. **my-service/index.js**:
+   - Define la lógica principal del microservicio `my-service`, manejando solicitudes HTTP en un entorno de Node.js.
 
-2. **MyService.java**:
-   - Define el microservicio que expone un API HTTP (`/my-api`) y usa **Hystrix** para protegerse de fallos en servicios externos.
-   - El método de respaldo (`fallbackMethod`) devuelve una respuesta predeterminada cuando el servicio externo falla repetidamente.
+2. **k8s/deployment.yaml**:
+   - Configura el despliegue del servicio en Kubernetes.
 
-3. **application.yml**:
-   - Configura las propiedades relacionadas con el **Circuit Breaker** usando **Hystrix** para manejar la resiliencia en las llamadas a servicios externos.
+3. **k8s/istio-destination-rule.yaml**:
+   - Define la política de destino de Istio para habilitar el patrón de resiliencia **Circuit Breaker**.
 
 ---
 
 ## 2. Flujo General de la Aplicación
 
-### Paso 1: Arranque de la Aplicación
-La aplicación se inicia con **SpringApplication.run()** en la clase `CircuitBreakerApplication.java`. Esto activa el servidor web embebido (generalmente Tomcat) y comienza a aceptar solicitudes HTTP.
+### Paso 1: Despliegue en Kubernetes
+El servicio `my-service` se despliega en un clúster de **Kubernetes** utilizando el archivo `deployment.yaml`. La imagen de Docker correspondiente se obtiene del repositorio de Docker Hub.
 
-### Paso 2: Manejo de Solicitudes HTTP
-El microservicio definido en `MyService.java` maneja las solicitudes GET en el endpoint `/my-api`. Este servicio intenta realizar una operación con un servicio externo que puede fallar. En caso de fallo repetido, Hystrix abre el Circuit Breaker y llama al método de respaldo `fallbackMethod()`.
+### Paso 2: Protección con Istio
+El patrón **Circuit Breaker** se implementa a través de una configuración de Istio en el archivo `istio-destination-rule.yaml`. Esta configuración define cómo debe comportarse el **Circuit Breaker** cuando detecta fallos en el servicio.
 
-### Paso 3: Configuración del Circuit Breaker
-El archivo `application.yml` define cómo Hystrix debe comportarse cuando detecta fallos. Esto incluye la cantidad de fallos permitidos antes de abrir el Circuit Breaker, el tiempo de espera antes de reintentar, y otros parámetros.
+### Paso 3: Monitoreo de Fallos
+El servicio está protegido por las reglas de **outlierDetection** de Istio, que monitorean los errores consecutivos y, en caso de alcanzar el umbral definido, activan el **Circuit Breaker**, evitando que el servicio continúe fallando.
 
 ---
 
 ## 3. Conclusión
 
 Esta estructura modular permite una clara separación de responsabilidades en la aplicación:
-- El código fuente (Java) está organizado en paquetes para facilitar la escalabilidad.
-- La configuración de Hystrix y otros parámetros están separados en archivos YAML, lo que facilita su modificación sin necesidad de cambiar el código fuente.
+- El código fuente de los servicios está organizado de manera que facilita la escalabilidad y el mantenimiento.
+- La configuración de Istio y Kubernetes permite un control eficiente del despliegue y la resiliencia de los servicios.
