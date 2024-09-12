@@ -1,0 +1,13 @@
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: my-service-circuit-breaker
+spec:
+  host: my-service
+  trafficPolicy:
+    outlierDetection:
+      consecutiveErrors: 2
+      interval: 5s
+      baseEjectionTime: 15m
+      maxEjectionPercent: 50
