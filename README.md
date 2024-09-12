@@ -1,36 +1,17 @@
+# Circuit Breaker Pattern
 
-# Circuit Breaker Pattern con Hystrix y Kubernetes
+El patrón **Circuit Breaker** es utilizado para evitar fallos en cascada en arquitecturas distribuidas, especialmente en microservicios. Cuando un servicio falla o su rendimiento es bajo, el **Circuit Breaker** impide que las solicitudes lleguen a ese servicio, protegiendo el sistema de fallos adicionales.
 
-Este repositorio contiene la implementación del patrón **Circuit Breaker** usando **Hystrix** y desplegado en **Kubernetes** con **Istio**.
+## Objetivo del Patrón
 
-## Estructura
+- Proteger servicios que dependen de otros servicios externos.
+- Aumentar la resiliencia del sistema.
+- Evitar sobrecargas por servicios que ya están fallando.
 
-- **docs/**: Explicaciones detalladas del patrón y conceptos clave.
-- **src/**: Código fuente del microservicio con Hystrix.
-- **k8s/**: Archivos de configuración para desplegar en Kubernetes e implementar el Circuit Breaker con Istio.
+## Ejercicio
 
-## Cómo usar este repositorio
+En este repositorio, implementaremos un **Circuit Breaker** utilizando **Istio** en un microservicio desplegado en **Kubernetes**.
 
-1. **Clona el repositorio**:
-   ```bash
-   git clone https://github.com/johnduartemoreno/circuit-breaker-pattern.git
-   cd circuit-breaker-pattern
-   ```
+Consulta la carpeta `src/` para el código fuente y la carpeta `k8s/` para los archivos de configuración de Kubernetes e Istio.
 
-2. **Despliega el servicio en Kubernetes**:
-   ```bash
-   kubectl apply -f k8s/deployment.yaml
-   kubectl apply -f k8s/service.yaml
-   ```
-
-3. **Configura Istio**:
-   ```bash
-   kubectl apply -f k8s/istio-destination-rule.yaml
-   ```
-
-4. **Prueba el Circuit Breaker** usando `curl` o Postman:
-   ```bash
-   curl http://localhost:8080/my-api
-   ```
-
-Para más información sobre el patrón, revisa los archivos en la carpeta `docs/`.
+Para más detalles sobre el patrón y la configuración con **Istio**, revisa el archivo [circuit-breaker-concepts.md](./circuit-breaker-concepts.md).
